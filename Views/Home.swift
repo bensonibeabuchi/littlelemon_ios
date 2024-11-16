@@ -1,23 +1,16 @@
-
-
 import SwiftUI
 
 struct Home: View {
-    
     var body: some View {
-        
-        ZStack {
-            MainScreen()
-                .navigationBarBackButtonHidden()
-            
-            
-        }
-        
+        MainScreen()
+            .navigationBarBackButtonHidden(true) // Retain only if back button hiding is intentional
     }
 }
 
 struct Home_Previews: PreviewProvider {
     static var previews: some View {
-        Home().environment(\.managedObjectContext, PersistenceController.shared.container.viewContext)
+        Home()
+            .environment(\.managedObjectContext, PersistenceController.shared.container.viewContext)
     }
 }
+

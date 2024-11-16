@@ -1,5 +1,3 @@
-
-
 import Foundation
 import CoreData
 
@@ -7,35 +5,57 @@ struct MenuList: Codable {
     let menu: [MenuItem]
     
     enum CodingKeys: String, CodingKey {
-        case menu = "menu"
+        case menu
     }
     
-    static func getMenuData(viewContext: NSManagedObjectContext) {
-        PersistenceController.shared.clear()
+    static func getMenuData(viewContext: NSManagedObjectContext, completion: @escaping (Result<Void, Error>) -> Void) {
+        guard let url = URL(string: "https://raw.githubusercontent.com/Meta-Mobile-Developer-PC/Working-With-Data-API/main/menu.json") else {
+            completion(.failure(NSError(domain: "Invalid URL", code: -1, userInfo: nil)))
+            return
+        }
         
-        let url = URL(string: "https://raw.githubusercontent.com/Meta-Mobile-Developer-PC/Working-With-Data-API/main/menu.json")
-        let request = URLRequest(url: url!)
+        let request = URLRequest(url: url)
         let session = URLSession.shared
+        
         let dataTask = session.dataTask(with: request) { data, response, error in
-            if let data = data {
+            if let error = error {
+                completion(.failure(error))
+                return
+            }
+            
+            guard let data = data else {
+                completion(.failure(NSError(domain: "No data received", code: -1, userInfo: nil)))
+                return
+            }
+            
+            do {
                 let decoder = JSONDecoder()
-                if let fullMenu = try? decoder.decode(MenuList.self, from: data) {
+                let fullMenu = try decoder.decode(MenuList.self, from: data)
+                
+                DispatchQueue.main.async {
+                    PersistenceController.shared.clear()
+                    
                     for dish in fullMenu.menu {
                         let newDish = Dish(context: viewContext)
                         newDish.title = dish.title
                         newDish.price = dish.price
                         newDish.descriptionDish = dish.descriptionDish
                         newDish.image = dish.image
-                        newDish.category = dish.category
+                        newDish.category = dish.category.rawValue
                     }
-                    try? viewContext.save()
-                } else {
-                    print(error.debugDescription.description)
+                    
+                    do {
+                        try viewContext.save()
+                        completion(.success(()))
+                    } catch {
+                        completion(.failure(error))
+                    }
                 }
-            } else {
-                print(error.debugDescription.description)
+            } catch {
+                completion(.failure(error))
             }
         }
+        
         dataTask.resume()
     }
 }

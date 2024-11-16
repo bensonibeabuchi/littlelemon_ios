@@ -1,5 +1,3 @@
-
-
 import SwiftUI
 import CoreData
 
@@ -7,27 +5,27 @@ struct Menu: View {
     
     @Environment(\.managedObjectContext) private var viewContext
     
-    @State var startersIsEnabled = true
-    @State var mainsIsEnabled = true
-    @State var dessertsIsEnabled = true
-    @State var drinksIsEnabled = true
+    @State private var startersIsEnabled = true
+    @State private var mainsIsEnabled = true
+    @State private var dessertsIsEnabled = true
+    @State private var drinksIsEnabled = true
     
-    @State var searchText = ""
+    @State private var searchText = ""
     
-    @State var loaded = false
+    @State private var loaded = false
     
-    @State var isKeyboardVisible = false
+    @State private var isKeyboardVisible = false
     
     init() {
-        UITextField.appearance().clearButtonMode = .whileEditing
+        // Move the UITextField appearance customization to onAppear
     }
     
     var body: some View {
-        NavigationView {
+        NavigationStack {  // Updated to NavigationStack
             VStack {
                 VStack {
                     if !isKeyboardVisible {
-                        withAnimation() {
+                        withAnimation {
                             Hero()
                                 .frame(maxHeight: 180)
                         }
@@ -44,6 +42,7 @@ struct Menu: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.top)
                     .padding(.leading)
+                
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 20) {
                         Toggle("Starters", isOn: $startersIsEnabled)
@@ -54,9 +53,8 @@ struct Menu: View {
                     .toggleStyle(MyToggleStyle())
                     .padding(.horizontal)
                 }
-                FetchedObjects(predicate: buildPredicate(),
-                               sortDescriptors: buildSortDescriptors()) {
-                    (dishes: [Dish]) in
+                
+                FetchedObjects(predicate: buildPredicate(), sortDescriptors: buildSortDescriptors()) { (dishes: [Dish]) in
                     List(dishes) { dish in
                         NavigationLink(destination: DetailItem(dish: dish)) {
                             FoodItem(dish: dish)
@@ -71,12 +69,12 @@ struct Menu: View {
                 MenuList.getMenuData(viewContext: viewContext)
                 loaded = true
             }
+            UITextField.appearance().clearButtonMode = .whileEditing  // Apply appearance here
         }
         .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { notification in
             withAnimation {
                 self.isKeyboardVisible = true
             }
-            
         }
         .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)) { notification in
             withAnimation {
@@ -88,19 +86,32 @@ struct Menu: View {
     func buildSortDescriptors() -> [NSSortDescriptor] {
         return [NSSortDescriptor(key: "title",
                                   ascending: true,
-                                  selector:
-                                    #selector(NSString.localizedStandardCompare))]
+                                  selector: #selector(NSString.localizedStandardCompare))]
     }
     
     func buildPredicate() -> NSCompoundPredicate {
-        let search = searchText == "" ? NSPredicate(value: true) : NSPredicate(format: "title CONTAINS[cd] %@", searchText)
-        let starters = !startersIsEnabled ? NSPredicate(format: "category != %@", "starters") : NSPredicate(value: true)
-        let mains = !mainsIsEnabled ? NSPredicate(format: "category != %@", "mains") : NSPredicate(value: true)
-        let desserts = !dessertsIsEnabled ? NSPredicate(format: "category != %@", "desserts") : NSPredicate(value: true)
-        let drinks = !drinksIsEnabled ? NSPredicate(format: "category != %@", "drinks") : NSPredicate(value: true)
-
-        let compoundPredicate = NSCompoundPredicate(andPredicateWithSubpredicates: [search, starters, mains, desserts, drinks])
-        return compoundPredicate
+        // Simplifying the logic for applying category filters
+        var predicates: [NSPredicate] = []
+        
+        // Search Predicate
+        let searchPredicate = searchText.isEmpty ? NSPredicate(value: true) : NSPredicate(format: "title CONTAINS[cd] %@", searchText)
+        predicates.append(searchPredicate)
+        
+        // Category Filters
+        if startersIsEnabled {
+            predicates.append(NSPredicate(format: "category == %@", "starters"))
+        }
+        if mainsIsEnabled {
+            predicates.append(NSPredicate(format: "category == %@", "mains"))
+        }
+        if dessertsIsEnabled {
+            predicates.append(NSPredicate(format: "category == %@", "desserts"))
+        }
+        if drinksIsEnabled {
+            predicates.append(NSPredicate(format: "category == %@", "drinks"))
+        }
+        
+        return NSCompoundPredicate(andPredicateWithSubpredicates: predicates)
     }
 }
 

@@ -1,39 +1,49 @@
-
-
 import SwiftUI
 
 struct DetailItem: View {
     
     @Environment(\.managedObjectContext) private var viewContext
-    
     let dish: Dish
     
     var body: some View {
         ScrollView {
-            AsyncImage(url: URL(string: dish.image ?? "")) { image in
-                image
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-            } placeholder: {
-                ProgressView()
+            VStack(spacing: 20) { // Adds consistent spacing between elements
+                AsyncImage(url: URL(string: dish.image ?? "")) { image in
+                    image
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                } placeholder: {
+                    Image("placeholder") // Fallback image
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(maxWidth: 200) // Optional size adjustment
+                        .padding()
+                }
+                .clipShape(Rectangle())
+                .cornerRadius(12)
+                .shadow(radius: 5)
+                
+                Text(dish.title ?? "Unknown Dish")
+                    .font(.subTitleFont())
+                    .foregroundColor(.primaryColor1)
+                    .multilineTextAlignment(.center)
+                
+                Text(dish.descriptionDish ?? "No description available.")
+                    .font(.regularText())
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.leading)
+                    .padding(.horizontal)
+                
+                Text("$\(dish.price ?? "0.00")")
+                    .font(.highlightText())
+                    .foregroundColor(.primaryColor1)
+                    .monospaced()
             }
-            .clipShape(Rectangle())
-            .frame(minHeight: 150)
-            Text(dish.title ?? "")
-                .font(.subTitleFont())
-                .foregroundColor(.primaryColor1)
-            Spacer(minLength: 20)
-            Text(dish.descriptionDish ?? "")
-                .font(.regularText())
-            Spacer(minLength: 10)
-            Text("$" + (dish.price ?? ""))
-                .font(.highlightText())
-                .foregroundColor(.primaryColor1)
-                .monospaced()
-            Spacer()
+            .padding()
         }
+        .navigationBarTitleDisplayMode(.inline) // Inline navigation bar title
         .frame(maxWidth: .infinity)
-        .ignoresSafeArea()
+        .background(Color(.systemBackground)) // Background color for better contrast
     }
 }
 

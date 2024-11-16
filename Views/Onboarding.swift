@@ -1,5 +1,3 @@
-
-
 import SwiftUI
 
 struct Onboarding: View {
@@ -25,25 +23,36 @@ struct Onboarding: View {
                         .background(Color.primaryColor1)
                         .frame(maxWidth: .infinity, maxHeight: 240)
                     VStack {
-                        NavigationLink(destination: Home(), isActive: $isLoggedIn) { }
+        
+                        NavigationLink(value: isLoggedIn) {
+                            EmptyView()
+                        }
+                        
                         Text("First name *")
                             .onboardingTextStyle()
                         TextField("First Name", text: $firstName)
+                        
                         Text("Last name *")
                             .onboardingTextStyle()
                         TextField("Last Name", text: $lastName)
+                        
                         Text("E-mail *")
                             .onboardingTextStyle()
                         TextField("E-mail", text: $email)
                             .keyboardType(.emailAddress)
+                        
+                        Text("Phone Number (optional)")
+                            .onboardingTextStyle()
+                        TextField("Phone Number", text: $phoneNumber)
+                            .keyboardType(.phonePad)
                     }
                     .textFieldStyle(.roundedBorder)
                     .disableAutocorrection(true)
                     .padding()
                     
-                    if viewModel.errorMessageShow {
-                        withAnimation() {
-                            Text(viewModel.errorMessage)
+                    if let errorMessage = viewModel.errorMessage {
+                        withAnimation {
+                            Text(errorMessage)
                                 .foregroundColor(.red)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                                 .padding(.leading)
@@ -52,17 +61,20 @@ struct Onboarding: View {
                     
                     Button("Register") {
                         if viewModel.validateUserInput(firstName: firstName, lastName: lastName, email: email, phoneNumber: phoneNumber) {
-                            UserDefaults.standard.set(firstName, forKey: kFirstName)
-                            UserDefaults.standard.set(lastName, forKey: kLastName)
-                            UserDefaults.standard.set(email, forKey: kEmail)
-                            UserDefaults.standard.set(true, forKey: kIsLoggedIn)
-                            UserDefaults.standard.set(true, forKey: kOrderStatuses)
-                            UserDefaults.standard.set(true, forKey: kPasswordChanges)
-                            UserDefaults.standard.set(true, forKey: kSpecialOffers)
-                            UserDefaults.standard.set(true, forKey: kNewsletter)
+                            UserDefaults.standard.set(firstName, forKey: UserDefaultsKey.firstName.rawValue)
+                            UserDefaults.standard.set(lastName, forKey: UserDefaultsKey.lastName.rawValue)
+                            UserDefaults.standard.set(email, forKey: UserDefaultsKey.email.rawValue)
+                            UserDefaults.standard.set(true, forKey: UserDefaultsKey.isLoggedIn.rawValue)
+                            UserDefaults.standard.set(true, forKey: UserDefaultsKey.orderStatuses.rawValue)
+                            UserDefaults.standard.set(true, forKey: UserDefaultsKey.passwordChanges.rawValue)
+                            UserDefaults.standard.set(true, forKey: UserDefaultsKey.specialOffers.rawValue)
+                            UserDefaults.standard.set(true, forKey: UserDefaultsKey.newsletter.rawValue)
+                            
+                     
                             firstName = ""
                             lastName = ""
                             email = ""
+                            phoneNumber = ""
                             isLoggedIn = true
                         }
                     }
@@ -78,7 +90,6 @@ struct Onboarding: View {
                         self.isKeyboardVisible = true
                         self.contentOffset = CGSize(width: 0, height: -keyboardHeight / 2 + 50)
                     }
-                    
                 }
                 .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)) { notification in
                     withAnimation {
@@ -87,16 +98,19 @@ struct Onboarding: View {
                     }
                 }
             }
+            .navigationDestination(for: Bool.self) { value in
+                if value {
+                    Home()  // Navigate to Home if isLoggedIn is true
+                }
+            }
             .onAppear() {
-                if UserDefaults.standard.bool(forKey: kIsLoggedIn) {
+                if UserDefaults.standard.bool(forKey: UserDefaultsKey.isLoggedIn.rawValue) {
                     isLoggedIn = true
                 }
             }
         }
         .navigationBarBackButtonHidden()
-        
     }
-    
 }
 
 struct Onboarding_Previews: PreviewProvider {

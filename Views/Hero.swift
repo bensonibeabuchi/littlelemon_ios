@@ -1,45 +1,48 @@
-
-
 import SwiftUI
 
 struct Hero: View {
-    
     var body: some View {
-        VStack {
-            HStack {
-                VStack {
+        ZStack {
+            Color.primaryColor1 // Background color
+                .ignoresSafeArea()
+            
+            HStack(alignment: .top, spacing: 16) {
+                VStack(alignment: .leading, spacing: 8) {
                     Text("Little Lemon")
                         .foregroundColor(Color.primaryColor2)
                         .font(.displayFont())
-                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .accessibilityLabel("Restaurant Name: Little Lemon")
+                    
                     Text("Chicago")
                         .foregroundColor(.white)
                         .font(.subTitleFont())
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                    Spacer(minLength: 5)
+                        .accessibilityLabel("Location: Chicago")
+                    
                     Text("""
-                     We are a family owned Mediterranean restaurant, focused on traditional recipes served with a modern twist.
-                     """)
+                    We are a family-owned Mediterranean restaurant, focused on traditional recipes served with a modern twist.
+                    """)
                     .foregroundColor(.white)
                     .font(.leadText())
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .accessibilityLabel("Description of the restaurant.")
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                
                 Image("hero-image")
                     .resizable()
-                    .aspectRatio( contentMode: .fill)
+                    .scaledToFit()
                     .frame(maxWidth: 120, maxHeight: 140)
-                    .clipShape(Rectangle())
-                    .cornerRadius(16)
+                    .clipShape(RoundedRectangle(cornerRadius: 16))
+                    .accessibilityLabel("Image of Mediterranean dishes")
             }
+            .padding()
         }
+        .frame(maxWidth: .infinity, maxHeight: 240)
     }
 }
 
 struct Hero_Previews: PreviewProvider {
     static var previews: some View {
         Hero()
-            .padding()
-            .background(Color.primaryColor1)
-            .frame(maxWidth: .infinity, maxHeight: 240)
+            .previewLayout(.sizeThatFits)
     }
 }

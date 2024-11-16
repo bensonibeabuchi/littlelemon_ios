@@ -1,69 +1,54 @@
-
 import Foundation
 import Combine
 
-public let kFirstName = "first name key"
-public let kLastName = "last name key"
-public let kEmail = "e-mail key"
-public let kIsLoggedIn = "kIsLoggedIn"
-public let kPhoneNumber = "phone number key"
-
-public let kOrderStatuses = "order statuses key"
-public let kPasswordChanges = "password changes key"
-public let kSpecialOffers = "special offers key"
-public let kNewsletter = "news letter key"
+enum UserDefaultsKey: String {
+    case firstName = "first name key"
+    case lastName = "last name key"
+    case email = "e-mail key"
+    case isLoggedIn = "kIsLoggedIn"
+    case phoneNumber = "phone number key"
+    case orderStatuses = "order statuses key"
+    case passwordChanges = "password changes key"
+    case specialOffers = "special offers key"
+    case newsletter = "news letter key"
+}
 
 class ViewModel: ObservableObject {
     
-    @Published var firstName = UserDefaults.standard.string(forKey: kFirstName) ?? ""
-    @Published var lastName = UserDefaults.standard.string(forKey: kLastName) ?? ""
-    @Published var email = UserDefaults.standard.string(forKey: kEmail) ?? ""
-    @Published var phoneNumber = UserDefaults.standard.string(forKey: kPhoneNumber) ?? ""
+    @Published var firstName = UserDefaults.standard.string(forKey: UserDefaultsKey.firstName.rawValue) ?? ""
+    @Published var lastName = UserDefaults.standard.string(forKey: UserDefaultsKey.lastName.rawValue) ?? ""
+    @Published var email = UserDefaults.standard.string(forKey: UserDefaultsKey.email.rawValue) ?? ""
+    @Published var phoneNumber = UserDefaults.standard.string(forKey: UserDefaultsKey.phoneNumber.rawValue) ?? ""
     
-    @Published var orderStatuses = UserDefaults.standard.bool(forKey: kOrderStatuses)
-    @Published var passwordChanges = UserDefaults.standard.bool(forKey: kPasswordChanges)
-    @Published var specialOffers = UserDefaults.standard.bool(forKey: kSpecialOffers)
-    @Published var newsletter = UserDefaults.standard.bool(forKey: kNewsletter)
+    @Published var orderStatuses = UserDefaults.standard.bool(forKey: UserDefaultsKey.orderStatuses.rawValue)
+    @Published var passwordChanges = UserDefaults.standard.bool(forKey: UserDefaultsKey.passwordChanges.rawValue)
+    @Published var specialOffers = UserDefaults.standard.bool(forKey: UserDefaultsKey.specialOffers.rawValue)
+    @Published var newsletter = UserDefaults.standard.bool(forKey: UserDefaultsKey.newsletter.rawValue)
     
-    
-    @Published var errorMessageShow = false
-    @Published var errorMessage = ""
-    
+    @Published var errorMessage: String? = nil
     @Published var searchText = ""
     
     func validateUserInput(firstName: String, lastName: String, email: String, phoneNumber: String) -> Bool {
         guard !firstName.isEmpty && !lastName.isEmpty && !email.isEmpty else {
             errorMessage = "All fields are required"
-            errorMessageShow = true
             return false
         }
         
-        guard email.contains("@") else {
+
+        let emailPattern = "[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}"
+        let emailPredicate = NSPredicate(format: "SELF MATCHES %@", emailPattern)
+        guard emailPredicate.evaluate(with: email) else {
             errorMessage = "Invalid email address"
-            errorMessageShow = true
             return false
         }
         
-        let email = email.split(separator: "@")
-        
-        guard email.count == 2 else {
-            errorMessage = "Invalid email address"
-            errorMessageShow = true
-            return false
-        }
-        
-        guard email[1].contains(".") else {
-            errorMessage = "Invalid email address"
-            errorMessageShow = true
-            return false
-        }
-        guard phoneNumber.first == "+" && phoneNumber.dropFirst().allSatisfy({$0.isNumber}) || phoneNumber.isEmpty else {
+
+        guard phoneNumber.isEmpty || (phoneNumber.first == "+" && phoneNumber.dropFirst().allSatisfy({ $0.isNumber })) else {
             errorMessage = "Invalid phone number format."
-            errorMessageShow = true
             return false
         }
-        errorMessageShow = false
-        errorMessage = ""
+        
+        errorMessage = nil
         return true
     }
 }

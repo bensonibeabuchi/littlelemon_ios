@@ -1,5 +1,3 @@
-
-
 import SwiftUI
 
 struct MainScreen: View {
@@ -7,11 +5,16 @@ struct MainScreen: View {
     
     var body: some View {
         NavigationStack {
-            VStack {
+            VStack(spacing: 16) {
                 Header()
+                Divider()
                 Menu()
             }
+            .navigationBarHidden(true)
+            .background(Color(.systemGroupedBackground))
+            .edgesIgnoringSafeArea(.top)
         }
+        .accessibilityLabel("Main Screen with Header and Menu")
     }
 }
 
